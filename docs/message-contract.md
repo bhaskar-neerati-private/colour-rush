@@ -96,7 +96,7 @@ Each phone sends its `keys` automatically as soon as an ordered message makes a 
 | `lastCard` | current player | `{}` | It is their turn and they have exactly 2 cards. |
 | `catch` | any other player | `{ target }` | The target has 1 card, did not press Last card, and the next player has not moved yet. Only the first valid `catch` counts. |
 | `timeout` | host | `{ seat }` | Sent by the host when the current player's 30 seconds run out. That player draws 1 and the turn ends. |
-| `removed` | host | `{ seat, reason }` | `timeouts` after 3 timeouts in a row. |
+| `removed` | host | `{ seat, reason }` | `timeouts` after 3 timeouts in a row. For information only: every phone already removes the player itself when it applies the third `timeout`. |
 
 Playing the drawn card uses the same `play` message. A Wild card's colour is sent inside `play`, so picking a colour is not a separate message.
 

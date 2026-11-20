@@ -94,6 +94,8 @@ When a Wild card is played, the "Pick a colour" panel opens. The game waits unti
 - A removed player's phone **keeps helping in the background** (it still holds padlock keys that other players need). If a removed player closes the game, the game ends for everyone.
 - The removed player sees: "You were removed. You missed 3 turns in a row, so you were removed from this game. Keep this page open until the game ends, other players need it." with a "Leave" button. "Leave" first asks "Leave this game?" because leaving ends the game for everyone.
 - Other players see "Removed" on that player's tile instead of a card count, and the status line says "Maya missed 3 turns in a row and was removed."
+- Removed players are skipped in turn order. **If removals leave only 1 player in the game, that player wins** (agreed 2026-11-20).
+- Any real move (play, draw or keep) resets your timeout count to 0.
 
 ## 10. When the draw pile runs out
 
