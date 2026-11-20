@@ -129,7 +129,7 @@ The table above was measured in the test runner (Node). **In a real browser it i
 | 3 | 0.4 s | 0.3 s |
 | 6 | 0.8 s | 0.6 s |
 
-Phones are expected to be 2 to 4 times slower than the laptop, so roughly 2 to 3 seconds for a 6-player shuffle. To be confirmed with the speed-test page on real phones (game-spec.md section 17).
+On a real phone (Android 10, Chrome 156, 2026-11-20): 2 players 0.4 s, 3 players 0.4 s, 6 players 0.9 s to shuffle, and 0.6 s for the 6-player end-of-game check. Fast enough, no change needed.
 
 The shuffle keeps the constant-time `multiply` because it uses secret keys. Checks use `multiplyUnsafe`, because their keys are already shared.
 

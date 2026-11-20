@@ -137,13 +137,18 @@ All labels use UK spelling. See `temp-ui/` for the look.
   - "This room is full. A game can have up to 6 players."
   - "This game has already started. You can join when the host starts a new one."
   - "This room uses a newer version of Colour Rush. Reload the page to update."
+  - "This room uses an older version of Colour Rush. Ask the host to reload the page." (when the joining phone is the newer one)
+- Checks before connecting: "Please type your name." and "Room codes have 4 characters, for example QM7K."
+- Invite link: `https://<site>/colour-rush/#QM7K`. Opening it shows Home with the join box open and the code filled in. While in a room, the address bar shows the code too.
+- Creating a room: "Creating your room", "Getting a room code..." and "Cancel" for about 2 seconds, while the phone checks that nobody else uses the new code.
 
 **Waiting room**
 - Room code in large letters, "Copy link", "Share" (opens the phone's share menu).
 - "Players (N of 6)" list with "Host" tag and "(you)". Empty rows: "Open seat".
 - Host: "Start game (N players)", hint "More players can join until you start." With 1 player: button disabled, hint "Share the code. You need at least 2 players to start."
 - Other players: "Waiting for Ravi to start the game".
-- "Leave" button in the top bar.
+- "Leave" button in the top bar. The host cannot remove players (agreed 2026-11-20).
+- If the host leaves the waiting room: "Asha left", "The host left, so this room is closed.", "Back to home".
 - Joining: "Joining room QM7K", "Connecting to the other players...", "Cancel".
 - No answer after 10 seconds (the phone cannot tell a wrong code from a blocked network): "Could not find room QM7K", "Check the code. If the code is right, your network may be blocking the connection.", tip about office and mobile networks, "Back to home", "Try again".
 
@@ -174,4 +179,4 @@ Accounts, chat, scores kept between games, spectators, computer players, house-r
 
 ## 17. Open points
 
-1. **Shuffle speed on phones** (found in phase 3). In Chrome on the laptop, a 6-player shuffle of 108 cards takes about 0.8 seconds and the end-of-game check about 0.6 seconds. Phones may be 2 to 4 times slower. To confirm, open the site with `?speedtest` on real phones and send the results. See fair-shuffle.md B8.
+1. ~~Shuffle speed on phones~~ **Closed 2026-11-20.** An Android 10 phone (Chrome 156) took 0.9 seconds for a 6-player shuffle and 0.6 seconds for the end-of-game check, the same as the laptop. No change needed. See fair-shuffle.md B8.

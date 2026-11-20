@@ -6,7 +6,9 @@ Every message the phones send each other. The code in `src/network/` and the gam
 
 - **Trystero** connects every phone directly to every other phone in the room.
   - App id: `colour-rush-v1`. Room id: the room code. The room code is also used as the Trystero room password, so the connection details are encrypted.
-  - Strategy: Trystero's default (Nostr relays). Can be changed in one place if it proves unreliable.
+  - Strategy: Trystero's default (Nostr relays). Can be changed in one place (`src/network/trystero.ts`) if it proves unreliable.
+  - Trystero identity: `none`, so every page load is a new player. This also lets several tabs of one browser act as different players for testing.
+  - A new room checks its code for 2 seconds before using it. If any other phone is already in that room, it picks a new code (up to 5 tries).
 - One Trystero action named `msg` carries all messages as JSON.
 - **The host's phone keeps the order.** Players send game messages to the host only. The host gives each one the next sequence number and sends it to everyone, including back to the sender. Every phone applies messages strictly in sequence order. This makes all phones agree, for example on who pressed "Caught!" first.
 - The host cannot fake a player's message, because every message is signed by its sender (section 2). The host cannot see or change cards, because of the padlocks.
@@ -55,11 +57,11 @@ These go directly between a joining player and the host. They are not ordered.
 
 | Type | From | To | Body | Notes |
 |---|---|---|---|---|
-| `hello` | joining player | host | `{ name, appVersion, signPub }` | Sent when the connection opens. |
-| `welcome` | host | that player | `{ playerId, lobby }` | Accepted. |
-| `refused` | host | that player | `{ reason }` | `full`, `started` or `version`. Shown as the join errors in game-spec.md. |
-| `lobby` | host | everyone | `{ hostId, players: [{ id, name }] }` | Sent whenever someone joins or leaves. Players are in seat order. |
-| `bye` | any player | everyone | `{}` | Sent when leaving on purpose. |
+| `hello` | joining player | every peer it meets | `{ name, appVersion, signPub }` | Sent when a connection to a peer opens, until the host answers. Other players ignore it. Signed with the key in `signPub`. |
+| `welcome` | host | that player | `{ playerId, lobby }` | Accepted. `lobby` is the same body as the `lobby` message. The player checks the signature with the host's key from that list. |
+| `refused` | host | that player | `{ reason, appVersion, signPub }` | `full`, `started` or `version`. Shown as the join errors in game-spec.md. `appVersion` is the host's, so the screen can say "newer" or "older". |
+| `lobby` | host | everyone | `{ hostId, players: [{ id, name, publicKey }] }` | Sent whenever someone joins or leaves. Players are in seat order. Every phone learns every player's signing key from it. Only accepted from the host's connection. |
+| `bye` | any player | everyone | `{}` | Sent when leaving on purpose, and when the page closes. A `bye` from the host closes the room. |
 
 Names: 1 to 16 characters, trimmed. If a name is already taken in the room, the host adds a number ("Asha 2").
 
@@ -71,7 +73,7 @@ All of these are sent to the host and come back to everyone as `ordered`.
 
 | Type | From | Body | Checks by every phone |
 |---|---|---|---|
-| `start` | host | `{ gameId, seats: [ids], firstSeat, appVersion }` | Sender is the host. 2 to 6 seats. Everyone in `seats` is connected. |
+| `start` | host | `{ gameId, seats: [ids], firstSeat, appVersion }` | Sender is the host. 2 to 6 seats. Everyone in `seats` is connected. (Phase 4 sends it directly; phase 5 moves it into the ordered stream.) |
 | `shuffleLock` | seat s | `{ epoch, step: s, points: [hex] }` | It is seat s's turn in Round 1. List length is right. Every point is valid. |
 | `shuffleRelock` | seat s | `{ epoch, step: s, points: [hex], commits: [hex] }` | It is seat s's turn in Round 2. Same checks for `points`. `commits` are the key promises (fair-shuffle.md B3): one valid point per box. |
 | `reshuffle` | host | `{ epoch, cardIds: [ids] }` | The draw pile is empty and a draw is needed. The ids match the discard pile minus its top card. |
