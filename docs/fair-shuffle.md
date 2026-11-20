@@ -47,7 +47,9 @@ Random numbers always come from `crypto.getRandomValues`.
 |---|---|
 | Seat s | Players in seat order, s = 0 to N-1 |
 | Epoch | One shuffled deck. Epoch 0 is the first shuffle of a game. Each reshuffle of the discard pile starts a new epoch. |
-| Card point C(id) | The point for card id (0 to 107) in this epoch: `hashToRistretto("colour-rush/v1/" + gameId + "/" + epoch + "/" + id)` |
+| Card point C(id) | The point for card id (0 to 107) in this epoch: `hashToRistretto("colour-rush/v1/" + gameId + "/" + epoch + "/" + id)`, with domain tag `colour-rush-v1` |
+| G | The standard base point of ristretto255 |
+| Promise P_s,j | k_s,j · G. Sent in Round 2 so every phone can check a box key the moment it is shared. It reveals nothing about the key or the card. |
 | Lock key e_s | Player s's secret scalar for Round 1 of this epoch |
 | Box key k_s,j | Player s's secret scalar for position j in Round 2 of this epoch |
 | Position j | A place in the final shuffled deck of this epoch, 0 to M-1 (M = number of cards in this epoch) |
@@ -65,7 +67,10 @@ Input: the list of card ids in this epoch (all 108 for epoch 0, or the discard p
 **Round 2 (one key per box)**, starting from R_0 = D_N, for seat s = 0, 1, ..., N-1 in order:
 1. Pick a random non-zero box key k_s,j for every position j.
 2. Compute R_(s+1)[j] = k_s,j · (e_s^-1 · R_s[j]). No shuffling in this round.
-3. Send R_(s+1) to everyone (message `shuffleRelock`).
+3. Compute the promises P_s,j = k_s,j · G.
+4. Send R_(s+1) and the promises to everyone (message `shuffleRelock`).
+
+Every phone checks each list it receives at once: right length, every entry a valid point, and no point twice (a copied card shows up as the same point twice).
 
 The final deck F = R_N. Every phone stores F and all the intermediate lists (they are needed for the end-of-game check).
 
@@ -75,8 +80,9 @@ After Round 2, each player's position j is locked with every player's own box ke
 
 - **For one player X** (dealing, drawing, penalty draws): every player s other than X sends k_s,j to everyone (message `keys`). X then computes P = k_X,j^-1 · (product over s≠X of k_s,j^-1) · F[j] and looks up which C(id) equals P. Other players cannot open it, because they do not have k_X,j.
 - **For everyone** (turning over the first card): every player sends their own k_s,j, so every phone can open it.
-- **Playing a card:** the player sends their own k_X,j with the `play` message. Every phone now has all keys for position j, opens it, and checks it matches the card the player named. If it does not match, the game stops with "Problem found".
-- **Wrong keys:** if a key sent by a player opens a position to a point that is not any C(id) of this epoch, the receiving phone reports "Problem found" naming the sender, and the game stops.
+- **Playing a card:** the player sends their own k_X,j with the `play` message. Every phone now has all keys for position j, opens it, and checks it matches the card the player named. If it does not match, the game stops with "Problem found" naming the player.
+- **Wrong keys:** every shared key is checked against its promise (k · G must equal P_s,j) the moment it arrives. A wrong key stops the game with "Problem found" naming the sender.
+- **A box that will not open** even though every key matched its promise means someone cheated in Round 2. The game stops and the end-of-game check (B7) runs at once, which names the player.
 
 Sending keys is done by the phones automatically. Nobody has to tap anything.
 
@@ -97,22 +103,34 @@ When a player needs to draw and the draw pile of the current epoch is empty:
 
 When the game ends, every player sends all their secret keys for every epoch: e_s and all k_s,j (message `auditKeys`). Every phone then checks:
 
-1. **Round 1:** for every seat s, unlocking D_(s+1) with e_s gives exactly the same set of points as D_s (only the order may differ).
-2. **Round 2:** for every seat s and position j, R_(s+1)[j] equals k_s,j · e_s^-1 · R_s[j].
-3. **Keys during play:** every key a player sent during the game equals their real key.
-4. **Played cards:** every played card opens to the card the player named.
-5. **Hands:** each player's opened cards, plus the cards they played, account for every position they drew.
+1. **Keys shared:** every player sent a valid lock key and one box key per position. If not: "They did not share their keys."
+2. **Round 1:** for every seat s, unlocking D_(s+1) with e_s gives exactly the same set of points as D_s (only the order may differ). If not: "Their shuffle changed the cards."
+3. **Round 2 promises:** for every seat s and position j, k_s,j · G equals P_s,j. If not: "Their keys did not match their promise."
+4. **Round 2 padlocks:** for every seat s and position j, R_(s+1)[j] equals k_s,j · e_s^-1 · R_s[j]. If not: "Their padlocks did not match."
 
-Any failure: "Problem found" naming the player whose step failed. Otherwise: "Fair game".
+Keys shared during play and played cards are already checked when they arrive (B4), so they do not need checking again here. Hands need no extra check either: the rules (src/rules) give every position to exactly one player.
 
-### B8. Speed (expected)
+Any failure: "Problem found" naming the first player whose step failed. Otherwise: "Fair game".
 
-One lock is one point multiplication, around 1 ms or less on a phone with `@noble/curves`. Shuffling 108 cards: about 108 multiplications per player per round, so well under a second per player. 6 players: a few seconds in total, including sending the lists.
+### B8. Speed (measured 2026-11-20, on the development laptop)
+
+| Step | Time |
+|---|---|
+| One lock (point multiplication) | about 1.1 ms (0.7 ms for checks, which use the faster `multiplyUnsafe`) |
+| Shuffle, 6 players, 108 cards | 3.5 to 6 seconds in total (0.6 to 1 second per player) |
+| Open all 108 boxes | about 0.3 seconds |
+| End-of-game check, 6 players | about 3.4 seconds |
+
+Phones are expected to be 2 to 4 times slower, so a 6-player shuffle could take 7 to 25 seconds on phones, and less with fewer players. To be measured on real phones (see the open point in game-spec.md section 16).
+
+The shuffle keeps the constant-time `multiply` because it uses secret keys. Checks use `multiplyUnsafe`, because their keys are already shared.
 
 ### B9. Tests (phase 3)
 
 - Locking and unlocking in any order gives back the same point.
 - A shuffle with 2 to 6 simulated players deals every card exactly once.
 - A player cannot open another player's card with the keys they receive.
-- A changed list in Round 1 or Round 2 is caught by the end-of-game check, and the right player is named.
+- A changed list in Round 1 or Round 2, or a false promise, is caught by the end-of-game check, and the right player is named.
 - A wrong key during play is caught at once.
+- Whole simulated games (2 and 3 players) with rules and padlocks together end with "Fair game".
+- Built in `src/shuffle/` (group.ts: maths, deck.ts: deck record, key safe, opening, check). Tests in `tests/shuffle/`.

@@ -12,6 +12,7 @@
     "test:watch": "node scripts/vitest.mjs"
   },
   "dependencies": {
+    "@noble/curves": "^2.4.0",
     "preact": "^11.2.0"
   },
   "devDependencies": {

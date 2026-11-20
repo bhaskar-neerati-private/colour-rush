@@ -73,14 +73,14 @@ All of these are sent to the host and come back to everyone as `ordered`.
 |---|---|---|---|
 | `start` | host | `{ gameId, seats: [ids], firstSeat, appVersion }` | Sender is the host. 2 to 6 seats. Everyone in `seats` is connected. |
 | `shuffleLock` | seat s | `{ epoch, step: s, points: [hex] }` | It is seat s's turn in Round 1. List length is right. Every point is valid. |
-| `shuffleRelock` | seat s | `{ epoch, step: s, points: [hex] }` | It is seat s's turn in Round 2. Same checks. |
+| `shuffleRelock` | seat s | `{ epoch, step: s, points: [hex], commits: [hex] }` | It is seat s's turn in Round 2. Same checks for `points`. `commits` are the key promises (fair-shuffle.md B3): one valid point per box. |
 | `reshuffle` | host | `{ epoch, cardIds: [ids] }` | The draw pile is empty and a draw is needed. The ids match the discard pile minus its top card. |
 
 ### Opening cards
 
 | Type | From | Body | Checks |
 |---|---|---|---|
-| `keys` | any player | `{ epoch, keys: [{ pos, key }] }` | The positions are being opened right now (deal, draw, penalty or first card). The sender is not the player receiving those cards (except for the first card, which everyone opens). |
+| `keys` | any player | `{ epoch, keys: [{ pos, key }] }` | The positions are being opened right now (deal, draw, penalty or first card). The sender is not the player receiving those cards (except for the first card, which everyone opens). Every key matches the sender's promise for that box. |
 
 Each phone sends its `keys` automatically as soon as an ordered message makes a position need opening:
 - After Round 2 of epoch 0: keys for all dealt positions of other players, plus the first face-up card.
@@ -138,6 +138,7 @@ If the host itself disconnects, the other phones see Trystero's peer-leave event
 | Problem | What every phone shows |
 |---|---|
 | A played card does not match its key | "Problem found" naming the player |
-| A key opens a position to an unknown point | "Problem found" naming the sender |
+| A shared key does not match the sender's promise | "Problem found" naming the sender |
+| A box will not open although every key matched its promise | Every phone sends `auditKeys` at once. The end-of-game check names the player who cheated in Round 2. |
 | A message with a bad signature | Ignored, not shown |
 | End-of-game check fails | "Problem found" on the game over screen, naming the player |

@@ -171,3 +171,7 @@ Accounts, chat, scores kept between games, spectators, computer players, house-r
 3. **"You were removed" screen** for a player who missed 3 turns (section 9).
 4. **Version mismatch join error** (section 14).
 5. **"Removed" label** on a removed player's tile (sections 9 and 14).
+
+## 17. Open points
+
+1. **Shuffle speed on phones** (found in phase 3). On the laptop, a 6-player shuffle of 108 cards takes 3.5 to 6 seconds and the end-of-game check about 3.4 seconds. Phones may be 2 to 4 times slower. Needs measuring on real phones before deciding whether anything must change. See fair-shuffle.md B8.
