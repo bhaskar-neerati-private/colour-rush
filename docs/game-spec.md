@@ -174,4 +174,4 @@ Accounts, chat, scores kept between games, spectators, computer players, house-r
 
 ## 17. Open points
 
-1. **Shuffle speed on phones** (found in phase 3). On the laptop, a 6-player shuffle of 108 cards takes 3.5 to 6 seconds and the end-of-game check about 3.4 seconds. Phones may be 2 to 4 times slower. Needs measuring on real phones before deciding whether anything must change. See fair-shuffle.md B8.
+1. **Shuffle speed on phones** (found in phase 3). In Chrome on the laptop, a 6-player shuffle of 108 cards takes about 0.8 seconds and the end-of-game check about 0.6 seconds. Phones may be 2 to 4 times slower. To confirm, open the site with `?speedtest` on real phones and send the results. See fair-shuffle.md B8.

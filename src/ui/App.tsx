@@ -1,8 +1,10 @@
 import { APP_VERSION, GAME_NAME } from '../version';
 import { Logo } from './Logo';
+import { SpeedTest } from './SpeedTest';
 
 // Phase 1 placeholder. The real screens come in phases 4 and 5.
 export function App() {
+  if (new URLSearchParams(location.search).has('speedtest')) return <SpeedTest />;
   return (
     <div class="app">
       <div class="screen">

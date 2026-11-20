@@ -121,7 +121,15 @@ Any failure: "Problem found" naming the first player whose step failed. Otherwis
 | Open all 108 boxes | about 0.3 seconds |
 | End-of-game check, 6 players | about 3.4 seconds |
 
-Phones are expected to be 2 to 4 times slower, so a 6-player shuffle could take 7 to 25 seconds on phones, and less with fewer players. To be measured on real phones (see the open point in game-spec.md section 16).
+The table above was measured in the test runner (Node). **In a real browser it is about 5 times faster.** The speed-test page (open the site with `?speedtest`) in Chrome on the same laptop gave:
+
+| Players | Shuffle | End-of-game check |
+|---|---|---|
+| 2 | 0.4 s | 0.2 s |
+| 3 | 0.4 s | 0.3 s |
+| 6 | 0.8 s | 0.6 s |
+
+Phones are expected to be 2 to 4 times slower than the laptop, so roughly 2 to 3 seconds for a 6-player shuffle. To be confirmed with the speed-test page on real phones (game-spec.md section 17).
 
 The shuffle keeps the constant-time `multiply` because it uses secret keys. Checks use `multiplyUnsafe`, because their keys are already shared.
 
